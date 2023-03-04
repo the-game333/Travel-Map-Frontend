@@ -41,5 +41,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "https://travel-map-backend.onrender.com/api"
+  "proxy": "http://localhost:8800/"
 }
