@@ -41,5 +41,8 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "https://travel-map-backend.onrender.com/api/"
+  "proxy": "https://travel-map-backend.onrender.com/api/",
+  "devDependencies": {
+    "worker-loader": "^3.0.8"
+  }
 }
