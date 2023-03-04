@@ -1,40 +1,25 @@
-import './app.css';
-import ReactMapGL, { Marker, Popup } from 'react-map-gl';
-import { useEffect, useState } from 'react';
-import { Star } from '@material-ui/icons';
+import "./app.css";
+import ReactMapGL, { Marker, Popup } from "react-map-gl";
+import { useEffect, useState } from "react";
+import { Room, Star, StarBorder } from "@material-ui/icons";
+import axios from "axios";
+import { format } from "timeago.js";
+import Register from "./components/Register";
+import Login from "./components/Login";
 
-import RoomTwoToneIcon from '@mui/icons-material/RoomTwoTone';
-import SchoolTwoToneIcon from '@mui/icons-material/SchoolTwoTone';
-import AccountBalanceTwoToneIcon from '@mui/icons-material/AccountBalanceTwoTone';
-import HotelTwoToneIcon from '@mui/icons-material/HotelTwoTone';
-import RestaurantMenuTwoToneIcon from '@mui/icons-material/RestaurantMenuTwoTone';
-import LocalCafeTwoToneIcon from '@mui/icons-material/LocalCafeTwoTone';
-import LocalHospitalTwoToneIcon from '@mui/icons-material/LocalHospitalTwoTone';
-import LocalGasStationTwoToneIcon from '@mui/icons-material/LocalGasStationTwoTone';
-import EvStationTwoToneIcon from '@mui/icons-material/EvStationTwoTone';
-import ShoppingCartTwoToneIcon from '@mui/icons-material/ShoppingCartTwoTone';
-
-import axios from 'axios';
-import { format } from 'timeago.js';
-import Register from './components/Register';
-import Login from './components/Login';
 
 function App() {
   const myStorage = window.localStorage;
-  const [currentUsername, setCurrentUsername] = useState(
-    myStorage.getItem('user')
-  );
+  const [currentUsername, setCurrentUsername] = useState(myStorage.getItem("user"));
   const [pins, setPins] = useState([]);
   const [currentPlaceId, setCurrentPlaceId] = useState(null);
   const [newPlace, setNewPlace] = useState(null);
   const [title, setTitle] = useState(null);
   const [desc, setDesc] = useState(null);
-  const [type, setType] = useState('Address');
-  const [star, setStar] = useState(1);
-  const [pinDeleted, setPinDeleted] = useState(false);
+  const [star, setStar] = useState(0);
   const [viewport, setViewport] = useState({
-    latitude: 20.5937,
-    longitude: 78.9629,
+    latitude: 47.040182,
+    longitude: 17.071727,
     zoom: 4,
   });
   const [showRegister, setShowRegister] = useState(false);
@@ -58,7 +43,6 @@ function App() {
     const newPin = {
       username: currentUsername,
       title,
-      type,
       desc,
       rating: star,
       lat: newPlace.lat,
@@ -66,55 +50,41 @@ function App() {
     };
 
     try {
-      const res = await axios.post('api/pins', newPin);
+      const res = await axios.post("https://travel-map-backend.onrender.com/api/pins", newPin);
       setPins([...pins, res.data]);
       setNewPlace(null);
-      setType('Address');
-      setStar(1);
     } catch (err) {
       console.log(err);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm('Do you want to delete this pin ?')) {
-      try {
-        await axios.delete(`api/pins/${id}`);
-        // console.log(res);
-        setPinDeleted(true);
-      } catch (err) {
-        console.log(err);
-      }
     }
   };
 
   useEffect(() => {
     const getPins = async () => {
       try {
-        const allPins = await axios.get('api/pins');
+        const allPins = await axios.get("https://travel-map-backend.onrender.com/api/pins");
         setPins(allPins.data);
       } catch (err) {
         console.log(err);
       }
     };
     getPins();
-    setPinDeleted(false);
-  }, [pinDeleted]);
+  }, []);
 
   const handleLogout = () => {
     setCurrentUsername(null);
-    myStorage.removeItem('user');
+    myStorage.removeItem("user");
   };
 
   return (
-    <div style={{ height: '100vh', width: '100%' }}>
+    <div style={{ height: "100vh", width: "100%" }}>
       <ReactMapGL
         {...viewport}
-        mapboxApiAccessToken={process.env.REACT_APP_MAPBOX}
+        mapboxApiAccessToken = {process.env.React_Map_Token} 
         width="100%"
         height="100%"
-        transitionDuration="50"
+        transitionDuration="150"
         mapStyle="mapbox://styles/abirskdr/clbl3nvsp008m14qnz9i5ds97"
+     //   mapStyle="mapbox://styles/safak/cknndpyfq268f17p53nmpwira"
         onViewportChange={(viewport) => setViewport(viewport)}
         onDblClick={currentUsername && handleAddClick}
       >
@@ -126,117 +96,15 @@ function App() {
               offsetLeft={-3.5 * viewport.zoom}
               offsetTop={-7 * viewport.zoom}
             >
-              {p.type === 'Address' ? (
-                <RoomTwoToneIcon
-                  style={{
-                    fontSize: 9 * viewport.zoom,
-                    color:
-                      currentUsername === p.username ? '#0E76A8' : '#DC143C',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
-                />
-              ) : p.type === 'Hospital' ? (
-                <LocalHospitalTwoToneIcon
-                  style={{
-                    fontSize: 9 * viewport.zoom,
-                    color:
-                      currentUsername === p.username ? '#0E76A8' : '#FF0000',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
-                />
-              ) : p.type === 'Hotel' ? (
-                <HotelTwoToneIcon
-                  style={{
-                    fontSize: 9 * viewport.zoom,
-                    color:
-                      currentUsername === p.username ? '#0E76A8' : '	#FF00FF',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
-                />
-              ) : p.type === 'Restaurant' ? (
-                <RestaurantMenuTwoToneIcon
-                  style={{
-                    fontSize: 9 * viewport.zoom,
-                    color:
-                      currentUsername === p.username ? '#0E76A8' : '#FF6347',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
-                />
-              ) : p.type === 'Cafe' ? (
-                <LocalCafeTwoToneIcon
-                  style={{
-                    fontSize: 9 * viewport.zoom,
-                    color:
-                      currentUsername === p.username ? '#0E76A8' : '	#8B4513',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
-                />
-              ) : p.type === 'Bank' ? (
-                <AccountBalanceTwoToneIcon
-                  style={{
-                    fontSize: 9 * viewport.zoom,
-                    color:
-                      currentUsername === p.username ? '#0E76A8' : '#556B2F',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
-                />
-              ) : p.type === 'Petrol Pump' ? (
-                <LocalGasStationTwoToneIcon
-                  style={{
-                    fontSize: 9 * viewport.zoom,
-                    color:
-                      currentUsername === p.username ? '#0E76A8' : '#000000',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
-                />
-              ) : p.type === 'EV Station' ? (
-                <EvStationTwoToneIcon
-                  style={{
-                    fontSize: 9 * viewport.zoom,
-                    color:
-                      currentUsername === p.username ? '#0E76A8' : '#00FA9A',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
-                />
-              ) : p.type === 'School' ? (
-                <SchoolTwoToneIcon
-                  style={{
-                    fontSize: 9 * viewport.zoom,
-                    color:
-                      currentUsername === p.username ? '#0E76A8' : '#708090',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
-                />
-              ) : p.type === 'University' ? (
-                <SchoolTwoToneIcon
-                  style={{
-                    fontSize: 9 * viewport.zoom,
-                    color:
-                      currentUsername === p.username ? '#0E76A8' : '#000080',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
-                />
-              ) : (
-                <ShoppingCartTwoToneIcon
-                  style={{
-                    fontSize: 9 * viewport.zoom,
-                    color:
-                      currentUsername === p.username ? '#0E76A8' : '#800080',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
-                />
-              )}
+              <Room
+                style={{
+                  fontSize: 7 * viewport.zoom,
+                  color:
+                    currentUsername === p.username ? "tomato" : "slateblue",
+                  cursor: "pointer",
+                }}
+                onClick={() => handleMarkerClick(p._id, p.lat, p.long)}
+              />
             </Marker>
             {p._id === currentPlaceId && (
               <Popup
@@ -249,7 +117,7 @@ function App() {
                 anchor="left"
               >
                 <div className="card">
-                  <label>{p.type}</label>
+                  <label>Place</label>
                   <h4 className="place">{p.title}</h4>
                   <label>Review</label>
                   <p className="desc">{p.desc}</p>
@@ -262,16 +130,6 @@ function App() {
                     Created by <b>{p.username}</b>
                   </span>
                   <span className="date">{format(p.createdAt)}</span>
-                  {currentUsername === p.username ? (
-                    <button
-                      className="btnDelete"
-                      onClick={() => handleDelete(p._id)}
-                    >
-                      Delete
-                    </button>
-                  ) : (
-                    ''
-                  )}
                 </div>
               </Popup>
             )}
@@ -285,11 +143,11 @@ function App() {
               offsetLeft={-3.5 * viewport.zoom}
               offsetTop={-7 * viewport.zoom}
             >
-              <RoomTwoToneIcon
+              <Room
                 style={{
                   fontSize: 7 * viewport.zoom,
-                  color: 'tomato',
-                  cursor: 'pointer',
+                  color: "tomato",
+                  cursor: "pointer",
                 }}
               />
             </Marker>
@@ -305,30 +163,12 @@ function App() {
                 <form onSubmit={handleSubmit}>
                   <label>Title</label>
                   <input
-                    type="text"
-                    required
                     placeholder="Enter a title"
                     autoFocus
                     onChange={(e) => setTitle(e.target.value)}
                   />
-                  <label>Type</label>
-                  <select onChange={(e) => setType(e.target.value)}>
-                    <option value="Address">Address</option>
-                    <option value="Hospital">Hospital</option>
-                    <option value="School">School</option>
-                    <option value="University">University</option>
-                    <option value="Hotel">Hotel</option>
-                    <option value="Restaurant">Restaurant</option>
-                    <option value="Cafe">Cafe</option>
-                    <option value="Bank">Bank</option>
-                    <option value="Petrol Pump">Petrol Pump</option>
-                    <option value="EV Station">EV Station</option>
-                    <option value="Shop">Shop</option>
-                  </select>
                   <label>Description</label>
                   <textarea
-                    type="text"
-                    required
                     placeholder="Say us something about this place."
                     onChange={(e) => setDesc(e.target.value)}
                   />
@@ -354,21 +194,12 @@ function App() {
           </button>
         ) : (
           <div className="buttons">
-            <button
-              className="button login"
-              onClick={() => {
-                setShowLogin(true);
-                setShowRegister(false);
-              }}
-            >
+            <button className="button login" onClick={() => setShowLogin(true)}>
               Log in
             </button>
             <button
               className="button register"
-              onClick={() => {
-                setShowRegister(true);
-                setShowLogin(false);
-              }}
+              onClick={() => setShowRegister(true)}
             >
               Register
             </button>
